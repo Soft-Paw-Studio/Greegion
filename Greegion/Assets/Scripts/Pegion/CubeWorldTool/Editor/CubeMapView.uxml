@@ -1,0 +1,23 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/Scripts/CubeMapView.uss?fileID=7433441132597879392&amp;guid=9a538e4ce2f614048b529d705fc06136&amp;type=3#CubeMapView" />
+    <engine:VisualElement name="RuleBox" style="flex-grow: 1; flex-direction: row; justify-content: space-between;">
+        <engine:VisualElement style="background-image: url(&quot;project://database/Packages/com.unity.render-pipelines.core/Editor/Icons/RenderGraphViewer/AccelerationStructure@2x.png?fileID=2800000&amp;guid=78c530431f09533469990aeb78f31210&amp;type=3#AccelerationStructure@2x&quot;); flex-grow: 1;" />
+        <engine:VisualElement name="Maz" style="align-items: stretch; flex-grow: 1; justify-content: space-between;">
+            <engine:VisualElement name="Hori_1" style="flex-direction: row; justify-content: space-around; flex-grow: 1;">
+                <engine:Button focusable="false" />
+                <engine:Button focusable="false" />
+                <engine:Button focusable="false" />
+            </engine:VisualElement>
+            <engine:VisualElement name="Hori_1" style="flex-direction: row; justify-content: space-around; flex-grow: 1;">
+                <engine:Button focusable="false" />
+                <engine:Button focusable="false" />
+                <engine:Button focusable="false" />
+            </engine:VisualElement>
+            <engine:VisualElement name="Hori_1" style="flex-direction: row; justify-content: space-around; flex-grow: 1;">
+                <engine:Button focusable="false" />
+                <engine:Button focusable="false" />
+                <engine:Button focusable="false" />
+            </engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

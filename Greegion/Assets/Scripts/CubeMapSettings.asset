@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4664c04c41da4d47b3ac54da5031e0f, type: 3}
+  m_Name: CubeMapSettings
+  m_EditorClassIdentifier: 
+  hitCubeColor: {r: 0, g: 1, b: 0.639941, a: 1}
+  emptyCubeColor: {r: 0.8560693, g: 1, b: 0.20440245, a: 1}
+  fillCubeColor: {r: 0.9441595, g: 0, b: 1, a: 1}
+  deleteCubeColor: {r: 1, g: 0, b: 0, a: 1}
+  mat: {fileID: 2100000, guid: ea428ff978ac5cd4aaf9c37425c40ff8, type: 2}
