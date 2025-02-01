@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -27,13 +28,14 @@ public class GridMoveController : MonoBehaviour
     private bool isMoving;
 
     public bool hitWall;
-    [FormerlySerializedAs("hitNothing")] public bool hitEmpty;
-    public bool higherThanMaxHeight;
+    public bool hitEmpty;
+    public bool hitSurface;
+    public bool hitMaxJumpHeight;
 
     public float maxJumpHeight = 3;
 
     public Vector3 targetSurface;
-    private RaycastHit hitSurface;
+    private RaycastHit hitResult;
 
     private void CheckMovable()
     {
@@ -42,14 +44,24 @@ public class GridMoveController : MonoBehaviour
         //1. Blocked by environment.
         hitWall = Physics.CheckSphere(forwardPoint, 0.1f, layer);
         //2. Is an empty space. e.g. water, void.
-        hitEmpty = !Physics.CheckSphere(forwardPoint + Vector3.down, 0.1f, layer);
+        hitEmpty = !Physics.Raycast(forwardPoint, Vector3.down, Mathf.Infinity, layer);
         //3. Is higher than max jump height.(Will hit the wall something.)
-        higherThanMaxHeight = Physics.Raycast(new Ray(forwardPoint + Vector3.up * maxJumpHeight, Vector3.down),
-            out hitSurface, Mathf.Infinity, layer);
+        hitMaxJumpHeight = Physics.CheckSphere(forwardPoint + Vector3.up * maxJumpHeight, 0.1f, layer);
 
-        targetSurface = hitSurface.point;
+        if (hitMaxJumpHeight == false)
+        {
+            hitSurface = Physics.Raycast(new Ray(forwardPoint + Vector3.up * maxJumpHeight, Vector3.down),
+                out hitResult, Mathf.Infinity, layer);
+
+            targetSurface = hitResult.point;  
+        }
+        else
+        {
+            targetSurface = Vector3.zero;  
+        }
+
     }
-
+    
     private void Awake()
     {
         input = new PegionActions();
@@ -57,7 +69,6 @@ public class GridMoveController : MonoBehaviour
         
         //Add input events.
         input.Gameplay.Movement.performed += OnMovementPressed;
-        input.Gameplay.Jump.performed += OnJumpPressed;
     }
 
     private void Start()
@@ -74,11 +85,6 @@ public class GridMoveController : MonoBehaviour
             y = Mathf.Round(pos.y),
             z = Mathf.Round(pos.z)
         };
-    }
-
-    private void OnJumpPressed(InputAction.CallbackContext obj)
-    {
-        // 处理跳跃逻辑
     }
 
     private void OnMovementPressed(InputAction.CallbackContext obj)
@@ -101,27 +107,36 @@ public class GridMoveController : MonoBehaviour
 
     private IEnumerator MoveTo(Vector3 moveTo,float duration)
     {
-
+        
         
         var startPosition = transform.position;
         var targetPosition = SnapToGrid(transform.position + moveTo);
         transform.LookAt(targetPosition, Vector3.up);
-
-        CheckMovable();
         
-        //Break the coroutine if hit wall.
-        if (hitWall || hitEmpty)
+        CheckMovable();
+
+        if (hitResult.point != Vector3.zero)
+        {
+            targetPosition.y = Mathf.Ceil(hitResult.point.y);
+        }
+        
+        if ((hitWall  && hitMaxJumpHeight) || hitEmpty)
         {
             isMoving = false;
             inputBuffer.RemoveAt(0);
             yield break;
         }
         
+        
         float time = 0;
+        
         while (time < duration)
         {
+            
+            
             //Update pigeon height and position
-            var targetHeight = ((bounceCurve.Evaluate(time / duration) * bounceHeight) + 1) * targetPosition.y;
+            var targetHeight = Mathf.Lerp(Mathf.Lerp(targetPosition.y,bounceCurve.Evaluate(time / duration) * bounceHeight,time/duration), targetPosition.y, time / duration);
+            //var targetHeight = ((bounceCurve.Evaluate(time / duration) * bounceHeight) + 1) * targetPosition.y;
             var finalTargetPosition = new Vector3(targetPosition.x, targetHeight, targetPosition.z);
             transform.position = Vector3.Lerp(startPosition, finalTargetPosition, time / duration);
             
