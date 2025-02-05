@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using System.Collections;
 
-public class PigeonController : MonoBehaviour
+public class PegionController : MonoBehaviour
 {
     // 移动模式枚举
     public enum MovementMode
