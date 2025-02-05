@@ -1,176 +1,191 @@
-using System;
+using UnityEngine;
+using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
-using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
 public class GridMoveController : MonoBehaviour
 {
-    //Parameters
-    [Header("Move Settings")]
-    [Range(0,1)]
-    public float moveDuration = 0.5f;
-    public LayerMask layer;
+    [SerializeField] private ParticleSystem bounceEffect;
     
-    [Header("Bounce Settings")]
-    [Range(0,2)]
-    public float bounceHeight = 1;
-    public AnimationCurve bounceCurve;
+    [Header("Movement Settings")]
+    [SerializeField, Range(0, 1)] private float moveDuration = 0.5f;
+    [SerializeField] private LayerMask collisionLayer;
+    [SerializeField, Range(0, 10)] private float bounceHeight = 1f;
+    [SerializeField] private AnimationCurve bounceCurve;
+    [SerializeField] private float maxJumpHeight = 3f;
     
-    //Store Values
-    private PegionActions input;
-    private Collider controllerCollider;
-    private List<Vector3> inputBuffer = new();
-    
-    //States
+    private PegionActions inputActions;
+    private Collider characterCollider;
+    private Queue<Vector3> moveInputQueue = new();
     private bool isMoving;
-
-    public bool hitWall;
-    public bool hitEmpty;
-    public bool hitSurface;
-    public bool hitMaxJumpHeight;
-
-    public float maxJumpHeight = 3;
-
-    public Vector3 targetSurface;
-    private RaycastHit hitResult;
-
-    private void CheckMovable()
-    {
-        var forwardPoint = controllerCollider.bounds.center + transform.forward;
-        //There's multiple condition will stop player to move
-        //1. Blocked by environment.
-        hitWall = Physics.CheckSphere(forwardPoint, 0.1f, layer);
-        //2. Is an empty space. e.g. water, void.
-        hitEmpty = !Physics.Raycast(forwardPoint, Vector3.down, Mathf.Infinity, layer);
-        //3. Is higher than max jump height.(Will hit the wall something.)
-        hitMaxJumpHeight = Physics.CheckSphere(forwardPoint + Vector3.up * maxJumpHeight, 0.1f, layer);
-
-        if (hitMaxJumpHeight == false)
-        {
-            hitSurface = Physics.Raycast(new Ray(forwardPoint + Vector3.up * maxJumpHeight, Vector3.down),
-                out hitResult, Mathf.Infinity, layer);
-
-            targetSurface = hitResult.point;  
-        }
-        else
-        {
-            targetSurface = Vector3.zero;  
-        }
-
-    }
     
+    // Movement state flags
+    private bool IsPathBlocked { get; set; }
+    private bool IsGroundMissing { get; set; }
+    private bool IsHeightExceeded { get; set; }
+    private Vector3 targetSurfacePoint;
+
     private void Awake()
     {
-        input = new PegionActions();
-        input.Enable();
-        
-        //Add input events.
-        input.Gameplay.Movement.performed += OnMovementPressed;
+        inputActions = new PegionActions();
+        inputActions.Enable();
+        inputActions.Gameplay.Movement.performed += HandleMovementInput;
+        TryGetComponent(out characterCollider);
     }
 
     private void Start()
     {
-        TryGetComponent(out controllerCollider);
-        transform.position = SnapToGrid(transform.position);
+        transform.position = SnapPositionToGrid(transform.position);
     }
 
-    private Vector3 SnapToGrid(Vector3 pos)
+    private void OnDestroy()
     {
-        return new Vector3
-        {
-            x = Mathf.Round(pos.x),
-            y = Mathf.Round(pos.y),
-            z = Mathf.Round(pos.z)
-        };
+        inputActions.Disable();
+        inputActions.Gameplay.Movement.performed -= HandleMovementInput;
     }
 
-    private void OnMovementPressed(InputAction.CallbackContext obj)
+    private void HandleMovementInput(InputAction.CallbackContext context)
     {
-        //Store input vector into lists.
-        var move = input.Gameplay.Movement.ReadValue<Vector2>();
+        Vector2 input = inputActions.Gameplay.Movement.ReadValue<Vector2>();
+        if (input.magnitude < 0.5f) return;
         
-        if(move.magnitude < 1) return;
-        
-        inputBuffer.Add(new Vector3(move.x, 0, move.y));
+        moveInputQueue.Enqueue(new Vector3(input.x, 0, input.y));
     }
 
     private void FixedUpdate()
     {
-        if (inputBuffer.Count <= 0 || isMoving) return;
+        if (moveInputQueue.Count == 0 || isMoving) return;
         
-        isMoving = true;
-        StartCoroutine(MoveTo(inputBuffer[0],moveDuration));
+        Vector3 nextMove = moveInputQueue.Peek();
+        if (CanMove(nextMove))
+        {
+            isMoving = true;
+            StartCoroutine(ExecuteMovement(nextMove));
+        }
+        else
+        {
+            moveInputQueue.Dequeue(); // Clear invalid move
+        }
     }
 
-    private IEnumerator MoveTo(Vector3 moveTo,float duration)
+    private bool CanMove(Vector3 moveDirection)
     {
-        
-        
-        var startPosition = transform.position;
-        var targetPosition = SnapToGrid(transform.position + moveTo);
-        transform.LookAt(targetPosition, Vector3.up);
-        
-        CheckMovable();
+        Vector3 forwardPoint = characterCollider.bounds.center + moveDirection;
+        Vector3 heightCheckPoint = forwardPoint + Vector3.up * maxJumpHeight;
 
-        if (hitResult.point != Vector3.zero)
+        // Check movement constraints
+        IsPathBlocked = Physics.CheckSphere(forwardPoint, 0.1f, collisionLayer);
+        IsGroundMissing = !Physics.Raycast(forwardPoint, Vector3.down, out RaycastHit groundHit, Mathf.Infinity, collisionLayer);
+        IsHeightExceeded = Physics.CheckSphere(heightCheckPoint, 0.1f, collisionLayer);
+
+        // Find landing point if movement is possible
+        if (!IsHeightExceeded && Physics.Raycast(heightCheckPoint, Vector3.down, out RaycastHit surfaceHit, Mathf.Infinity, collisionLayer))
         {
-            targetPosition.y = Mathf.Ceil(hitResult.point.y);
+            targetSurfacePoint = surfaceHit.point;
+            return true;
         }
-        
-        if ((hitWall  && hitMaxJumpHeight) || hitEmpty)
+
+        return !IsPathBlocked && !IsGroundMissing;
+    }
+
+    private IEnumerator ExecuteMovement(Vector3 moveDirection)
+    {
+        Vector3 startPosition = transform.position;
+        Vector3 targetPosition = SnapPositionToGrid(startPosition + moveDirection);
+        targetPosition.y = Mathf.Ceil(targetSurfacePoint.y);
+
+        // Face movement direction
+        Vector3 lookPosition = targetPosition;
+        transform.LookAt(lookPosition, Vector3.up);
+        transform.rotation = Quaternion.Euler(0,transform.rotation.eulerAngles.y,transform.rotation.eulerAngles.z);
+
+        float elapsedTime = 0f;
+        while (elapsedTime < moveDuration)
         {
-            isMoving = false;
-            inputBuffer.RemoveAt(0);
-            yield break;
-        }
-        
-        
-        float time = 0;
-        
-        while (time < duration)
-        {
+            elapsedTime += Time.deltaTime;
+            float normalizedTime = elapsedTime / moveDuration;
             
+            // Calculate arc movement
+            Vector3 midPoint = CalculateArcMidPoint(startPosition, targetPosition);
             
-            //Update pigeon height and position
-            var targetHeight = Mathf.Lerp(Mathf.Lerp(targetPosition.y,bounceCurve.Evaluate(time / duration) * bounceHeight,time/duration), targetPosition.y, time / duration);
-            //var targetHeight = ((bounceCurve.Evaluate(time / duration) * bounceHeight) + 1) * targetPosition.y;
-            var finalTargetPosition = new Vector3(targetPosition.x, targetHeight, targetPosition.z);
-            transform.position = Vector3.Lerp(startPosition, finalTargetPosition, time / duration);
-            
-            time += Time.deltaTime;
+            Vector3 currentPosition = CalculateBezierPoint
+            (
+                normalizedTime,
+                startPosition,
+                midPoint,
+                targetPosition
+            );
+
+            transform.position = Vector3.Lerp
+            (
+                transform.position,
+                currentPosition,
+                bounceCurve.Evaluate(normalizedTime)
+            );
+
             yield return null;
         }
-        
+
+        // Ensure exact final position
         transform.position = targetPosition;
-        
-        inputBuffer.RemoveAt(0);
+        bounceEffect.Play();
+
+        moveInputQueue.Dequeue();
         isMoving = false;
+    }
+
+    private Vector3 CalculateArcMidPoint(Vector3 start, Vector3 end)
+    {
+        Vector3 midPoint = (start + end) * 0.5f;
+        midPoint.y += bounceHeight;
+        return midPoint;
+    }
+
+    private Vector3 CalculateBezierPoint(float t, Vector3 start, Vector3 mid, Vector3 end)
+    {
+        float oneMinusT = 1f - t;
+        return (oneMinusT * oneMinusT * start) + 
+               (2f * oneMinusT * t * mid) + 
+               (t * t * end);
+    }
+
+    private Vector3 SnapPositionToGrid(Vector3 position)
+    {
+        return new Vector3
+        (
+            Mathf.Round(position.x),
+            Mathf.Round(position.y),
+            Mathf.Round(position.z)
+        );
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.TryGetComponent(out ICollectable collectable))
+        {
+            collectable.Collect();
+            Debug.Log($"Collected: {other.name}");
+        }
     }
 
     private void OnDrawGizmos()
     {
-        if (!controllerCollider) return;
-        
-        var targetPoint = controllerCollider.bounds.center + transform.forward + Vector3.up * maxJumpHeight;
-        
+        if (!characterCollider) return;
+
+        Vector3 forwardPoint = characterCollider.bounds.center + transform.forward;
+        Vector3 heightCheckPoint = forwardPoint + Vector3.up * maxJumpHeight;
+
+        // Draw height check point
         Gizmos.color = Color.red;
-        Gizmos.DrawSphere(targetPoint, 0.1f);
-        
-        var ray = new Ray
-        {
-            origin = targetPoint,
-            direction = Vector3.down
-        };
-        
-        if (Physics.Raycast(ray, out var hit, Mathf.Infinity, layer))
+        Gizmos.DrawSphere(heightCheckPoint, 0.1f);
+
+        // Draw ground check ray
+        if (Physics.Raycast(heightCheckPoint, Vector3.down, out RaycastHit hit, Mathf.Infinity, collisionLayer))
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawLine(targetPoint,hit.point);
-            Gizmos.DrawSphere(hit.point,0.1f);
+            Gizmos.DrawLine(heightCheckPoint, hit.point);
+            Gizmos.DrawSphere(hit.point, 0.1f);
         }
-
     }
 }

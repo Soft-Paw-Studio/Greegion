@@ -1,0 +1,16 @@
+.custom-label {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: rgb(68, 138, 255);
+}
+
+.unity-label {
+    -unity-font-style: bold;
+    color: rgb(228, 228, 228);
+    -unity-text-align: middle-left;
+    font-size: 30px;
+    -unity-text-outline-width: 2px;
+    -unity-font-definition: resource('FlatSkin/Font/Roboto-Bold');
+    -unity-text-outline-color: rgb(38, 38, 38);
+    letter-spacing: 10px;
+}

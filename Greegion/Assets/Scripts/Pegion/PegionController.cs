@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections;
 
@@ -132,5 +133,25 @@ public class PigeonController : MonoBehaviour
         }
 
         characterController.Move(velocity * Time.deltaTime);
+    }
+    
+    private void OnTriggerEnter(Collider other)
+    {
+        Debug.Log(other.name);
+        if (other.TryGetComponent(out ICollectable collectable))
+        {
+            collectable.Collect();
+            Debug.Log("Eat");
+        }
+    }
+
+    private void OnCollisionEnter(Collision other)
+    {
+        Debug.Log(other.gameObject.name);
+        if (other.gameObject.TryGetComponent(out ICollectable collectable))
+        {
+            collectable.Collect();
+            Debug.Log("Eat");
+        }
     }
 }
