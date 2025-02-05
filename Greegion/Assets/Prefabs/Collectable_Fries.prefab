@@ -4903,7 +4903,7 @@ GameObject:
   - component: {fileID: 1755454289170968336}
   - component: {fileID: 5391795579329493240}
   - component: {fileID: 5969031843454810035}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Collectable_Fries
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5056,12 +5056,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: afb346c3aa6d84f488b5337c113123a9, type: 3}
       propertyPath: m_Layer
-      value: 7
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: afb346c3aa6d84f488b5337c113123a9, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3900794002678915852, guid: afb346c3aa6d84f488b5337c113123a9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: fa25c9df7f94fa54ba0cefa2fa72cce5, type: 2}
     - target: {fileID: 6569120754469167913, guid: afb346c3aa6d84f488b5337c113123a9, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
