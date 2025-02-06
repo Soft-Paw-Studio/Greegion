@@ -126,7 +126,7 @@ MonoBehaviour:
         serializedVersion: 2
         m_Bits: 8
       PassNames: []
-    overrideMaterial: {fileID: 2100000, guid: d79d90db0617feb4f9c5cd97d25aa53f, type: 2}
+    overrideMaterial: {fileID: 2100000, guid: 226ff8f2ef699d74f94ede96660087d8, type: 2}
     overrideMaterialPassIndex: 0
     overrideShader: {fileID: 0}
     overrideShaderPassIndex: 0
@@ -221,10 +221,10 @@ MonoBehaviour:
     AfterOpaque: 1
     Source: 1
     NormalSamples: 1
-    Intensity: 3
+    Intensity: 0.3
     DirectLightingStrength: 0
-    Radius: 0.15
-    Samples: 1
+    Radius: 0.5
+    Samples: 0
     BlurQuality: 0
     Falloff: 500
     SampleCount: -1

@@ -19,6 +19,8 @@ public class PigeonController : MonoBehaviour
     private Camera _camera;
     private float verticalVelocity; // 垂直方向速度
 
+    public PegionBellyController bellyController;
+    public float fatAmount = 0.2f;
     private void Awake()
     {
         input = new PegionActions();
@@ -53,7 +55,7 @@ public class PigeonController : MonoBehaviour
     {
         if (controller.isGrounded) // 只有在地面上才能跳跃
         {
-            verticalVelocity = jumpForce;
+            verticalVelocity = jumpForce * (Mathf.Clamp01(1 - bellyController.size) + 0.5f);
         }
     }
 
@@ -94,6 +96,7 @@ public class PigeonController : MonoBehaviour
         {
             collectable.Collect();
             Debug.Log("Eat");
+            bellyController.size = Mathf.Clamp01(bellyController.size + fatAmount);
         }
     }
 }
