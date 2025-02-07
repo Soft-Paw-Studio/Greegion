@@ -347,6 +347,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4106492312701804443, guid: 7bf0af5701e9e844d998f9e68a228926, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 5248607359514381638, guid: 7bf0af5701e9e844d998f9e68a228926, type: 3}
       propertyPath: m_Name
       value: Collectable_Fries
@@ -10152,7 +10156,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: -0.3696438, z: 0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: 15.1929455, y: 13.785038, z: -15.192945}
+  m_LocalPosition: {x: 9.1157675, y: 8.671022, z: -9.115767}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -42197,11 +42201,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1234652268}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &1234991805 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 530794148920237075, guid: 4d8961c62b7c24a89b094fe8c31f84ff, type: 3}
-  m_PrefabInstance: {fileID: 4692876063696872691}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1236923969
 GameObject:
   m_ObjectHideFlags: 0
@@ -70856,7 +70855,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 886251e9a18ece04ea8e61686c173e1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CameraDistance: 25
+  CameraDistance: 15
   DeadZoneDepth: 0
   Composition:
     ScreenPosition: {x: 0, y: 0.05}
@@ -70895,7 +70894,7 @@ MonoBehaviour:
   m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
-    TrackingTarget: {fileID: 1234991805}
+    TrackingTarget: {fileID: 1109769459}
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:
@@ -70927,7 +70926,7 @@ Transform:
   m_GameObject: {fileID: 2017804855}
   serializedVersion: 2
   m_LocalRotation: {x: 0.23911765, y: -0.3696438, z: 0.09904577, w: 0.89239913}
-  m_LocalPosition: {x: 15.1929455, y: 13.785038, z: -15.192945}
+  m_LocalPosition: {x: 9.1157675, y: 8.671022, z: -9.115767}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

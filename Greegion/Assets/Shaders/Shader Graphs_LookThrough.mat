@@ -53,7 +53,10 @@ Material:
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _Speed: 1
+    - _StripNum: 60
     m_Colors:
-    - _Color: {r: 0, g: 1, b: 0.33398867, a: 0}
+    - _Color: {r: 1, g: 0.8316516, b: 0, a: 0}
+    - _Color_1: {r: 1, g: 0.7250549, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
