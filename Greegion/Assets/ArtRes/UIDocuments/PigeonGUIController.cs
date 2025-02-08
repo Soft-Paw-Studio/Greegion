@@ -18,7 +18,7 @@ public class PigeonGUIController : MonoBehaviour
         visualAsset = GetComponent<UIDocument>();
         friesText = visualAsset.rootVisualElement.Q<Label>("FriesCount");
         
-        friesCount = FindObjectsByType<ColletableBase>(FindObjectsSortMode.None).Length;
+        friesCount = FindObjectsByType<Food>(FindObjectsSortMode.None).Length;
         remainFriesCount = friesCount;
         friesText.text = remainFriesCount.ToString();
         

@@ -100,7 +100,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae5ba038f5b64e84a9269dce93743511, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  calories: 1
+  calories: 0.2
   rotateRate: 0.5
   floatingHeight: 0.1
   onCollectParticle: {fileID: 3552809887909127121, guid: 9fb436429e9557e44902d584e661ee57, type: 3}
@@ -206,7 +206,7 @@ PrefabInstance:
     - target: {fileID: 6569120754469167913, guid: afb346c3aa6d84f488b5337c113123a9, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: a02ec93e3bc6cc645a5e0470cbb20f85, type: 2}
+      objectReference: {fileID: 2100000, guid: 21fd6d66d6ebebb4684d7deec17dc7db, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
