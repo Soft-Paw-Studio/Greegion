@@ -1,4 +1,5 @@
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 
 public abstract class ColletableBase : MonoBehaviour,ICollectable
@@ -12,19 +13,11 @@ public abstract class ColletableBase : MonoBehaviour,ICollectable
 
     private void Start()
     {
-        transform.position = SnapToGrid(transform.position);
+        //transform.position.SnapToGrid();
         childRoot = transform.GetChild(0);
         storePosition = transform.position;
     }
-    private Vector3 SnapToGrid(Vector3 pos)
-    {
-        return new Vector3
-        {
-            x = Mathf.Round(pos.x),
-            y = Mathf.Round(pos.y),
-            z = Mathf.Round(pos.z)
-        };
-    }
+    
     private void Update()
     {
         childRoot.Rotate(Vector3.up,rotateRate,Space.World);
@@ -35,8 +28,8 @@ public abstract class ColletableBase : MonoBehaviour,ICollectable
 
     public virtual void Collect()
     {
-        afterCollectEffect.transform.SetParent(null);
-        afterCollectEffect.Play();
+        var particle = Instantiate(afterCollectEffect, transform.position, quaternion.identity);
+        particle.Play();
         Destroy(gameObject);
     }
 }

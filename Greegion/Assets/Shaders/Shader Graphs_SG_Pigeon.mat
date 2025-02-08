@@ -37,6 +37,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _Albedo:
+        m_Texture: {fileID: 2800000, guid: 576eb454ed61ffd4880f542b69e80561, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_ac81aee20e1e44aea5b6c4582429d198_Texture_1_Texture2D:
         m_Texture: {fileID: 2800000, guid: 9576c7b5077f2ba4a8ecb74bd20a2f85, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -56,7 +60,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _FresnelRamp: 0.6
-    - _FresnelSmooth: 0
+    - _FresnelSmooth: 0.145
     - _IsBack: 1
     - _QueueControl: 0
     - _QueueOffset: 0
@@ -64,7 +68,9 @@ Material:
     - _ShadowSmooth: 0
     - _Size: 0
     - _SizePower: 4
+    - _SpecularSize: 0.804
     m_Colors:
     - _FresnelColor: {r: 2.9960787, g: 2.9960787, b: 2.9960787, a: 1}
+    - _SpecularColor: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

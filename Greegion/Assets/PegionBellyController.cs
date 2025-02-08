@@ -20,7 +20,14 @@ public class PegionBellyController : MonoBehaviour
     private static readonly int BellyPosition = Shader.PropertyToID("_BellyPosition");
     private static readonly int BellyOffset = Shader.PropertyToID("_BellyOffset");
     private static readonly int Size = Shader.PropertyToID("_Size");
-
+    
+    [Button()]
+    public void ResetVector()
+    {
+        Shader.SetGlobalVector(BellyPosition, transform.position);
+    }
+    
+    
     void Update()
     {
         Shader.SetGlobalFloat(Size, size);
@@ -44,11 +51,6 @@ public class PegionBellyController : MonoBehaviour
         // 更新肚子的位置
         bellyPosition += velocity * Time.deltaTime;
 
-        // **动态增加阻尼，使振幅更快衰减**
-        damping += dampingIncrease * Time.deltaTime;
-        damping = Mathf.Clamp(damping, 0.8f, dampingMax); // 限制阻尼最大值，防止过大导致硬直
-
         Shader.SetGlobalVector(BellyPosition, bellyPosition);
-        Shader.SetGlobalVector(BellyOffset, bellyOffset);
     }
 }
