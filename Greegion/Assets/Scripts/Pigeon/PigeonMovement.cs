@@ -7,16 +7,15 @@ using UnityEngine.Events;
 /// </summary>
 public class PigeonMovement : Singleton<PigeonMovement>
 {
-    //Parameters
+    [Header("Stats")]
+    [SerializeField]
+    private PigeonStats stats;
+    
     [Header("Movement Parameters")] 
-    [SerializeField][Range(0, 5)]
-    private float speed = 3f;
     [SerializeField][Range(0, 1)]
     private float smoothTime = 0.1f;
 
-    [Header("Jump Parameters")] 
-    [SerializeField][Range(0, 5)]
-    private float jumpHeight = 2f;
+    [Header("Physics Parameters")]
     [SerializeField][Range(0, 9.81f)]
     private float gravity = 9.81f;
 
@@ -30,9 +29,18 @@ public class PigeonMovement : Singleton<PigeonMovement>
     [SerializeField][Range(0,10)]
     private float damping = 0.8f;
 
-    //Store Values
+    [Header("ToFly")] 
+    public float glidingGravity;
+    
+    // 存储当前的速度和跳跃高度
+    [ShowInInspector,ReadOnly]
     private float currentSpeed;
+    [ShowInInspector,ReadOnly]
     private float currentJumpHeight;
+    [ShowInInspector,ReadOnly]
+    private float currentVisualSize;
+  
+    //Store Values
     private float verticalVelocity;
     
     private Vector3 moveDirection;
@@ -48,10 +56,12 @@ public class PigeonMovement : Singleton<PigeonMovement>
 
     private static readonly int ShaderBellyPosition = Shader.PropertyToID("_BellyPosition");
     private static readonly int ShaderSize = Shader.PropertyToID("_Size");
-    
+
+
     //Events
     private UnityAction<float> PigeonGetWeight;
 
+    //======= UnityLifeCycle ========
     /// <summary>
     /// 初始化输入系统并注册跳跃事件
     /// </summary>
@@ -72,8 +82,23 @@ public class PigeonMovement : Singleton<PigeonMovement>
         mainCamera = Camera.main;
         TryGetComponent(out controller);
         bellyPosition = transform.position;
+        UpdateMovementStats();
     }
 
+    private void UpdateMovementStats()
+    {
+        if (stats != null)
+        {
+            (currentSpeed, currentJumpHeight, currentVisualSize) = stats.GetStatsForWeight(size);
+            UpdateVisualSize();
+        }
+    }
+    
+    private void UpdateVisualSize()
+    {
+        Shader.SetGlobalFloat(ShaderSize, currentVisualSize);
+    }
+    
     /// <summary>
     /// 每帧更新处理移动、物理和动画
     /// </summary>
@@ -97,6 +122,7 @@ public class PigeonMovement : Singleton<PigeonMovement>
         }
     }
 
+    //======= Functions ========
     /// <summary>
     /// 读取并处理玩家的移动输入
     /// </summary>
@@ -127,7 +153,7 @@ public class PigeonMovement : Singleton<PigeonMovement>
     private void MoveCharacter()
     {
         currentMovement = Vector3.SmoothDamp(currentMovement, moveDirection, ref moveVectorRef, smoothTime);
-        Vector3 finalMove = currentMovement * (speed * (1 - size * 0.5f)) + Vector3.up * verticalVelocity;
+        Vector3 finalMove = currentMovement * currentSpeed + Vector3.up * verticalVelocity;
         controller.Move(finalMove * Time.deltaTime);
 
         if (currentMovement.sqrMagnitude > 0.01f)
@@ -142,7 +168,7 @@ public class PigeonMovement : Singleton<PigeonMovement>
     private void OnJump()
     {
         if (!controller.isGrounded) return;
-        float jumpInitialVelocity = Mathf.Sqrt(2 * gravity * jumpHeight);
+        float jumpInitialVelocity = Mathf.Sqrt(2 * gravity * currentJumpHeight);
         verticalVelocity = jumpInitialVelocity;
     }
 
@@ -166,8 +192,6 @@ public class PigeonMovement : Singleton<PigeonMovement>
     /// </summary>
     private void BellyPhysics()
     {
-        Shader.SetGlobalFloat(ShaderSize, size);
-
         Vector3 displacement = bellyPosition - transform.position;
         Vector3 springForce = -elasticity * displacement;
         Vector3 dampingForce = -damping * velocity;
@@ -186,7 +210,9 @@ public class PigeonMovement : Singleton<PigeonMovement>
     private void OnPigeonGetWeight(float weight)
     {
         size = Mathf.Clamp01(size + weight);
+        UpdateMovementStats();
     }
+
 #if UNITY_EDITOR
     /// <summary>
     /// 编辑器模式下更新肚子大小和位置
@@ -204,7 +230,8 @@ public class PigeonMovement : Singleton<PigeonMovement>
     public override void OnApplicationQuit()
     {
         base.OnApplicationQuit();
-        AdjustSize();
+        Shader.SetGlobalFloat(ShaderSize, 0);
+        Shader.SetGlobalVector(ShaderBellyPosition, transform.position);
     }
 #endif
 }

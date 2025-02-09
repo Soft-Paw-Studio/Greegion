@@ -64,8 +64,8 @@ Material:
     - _IsBack: 1
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _RimRamp: 0.615
-    - _RimSmooth: 0.01
+    - _RimRamp: 0.5
+    - _RimSmooth: 0
     - _ShadowRamp: 0
     - _ShadowRemoval: 0.5
     - _ShadowSmooth: 0.01
@@ -75,7 +75,7 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 0}
     - _FresnelColor: {r: 2.9960787, g: 2.9960787, b: 2.9960787, a: 1}
-    - _RimColor: {r: 6.0628657, g: 6.0628657, b: 6.0628657, a: 1}
+    - _RimColor: {r: 1.8322512, g: 1.2087215, b: 0.58194125, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 0}
     - _Tint: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []

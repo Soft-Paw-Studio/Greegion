@@ -75,3 +75,5 @@ crashlytics-build.properties
 /Greegion/Logs
 /Greegion/UserSettings/Layouts
 /Greegion/UserSettings
+/Greegion/obj
+/Greegion/UserSettings
