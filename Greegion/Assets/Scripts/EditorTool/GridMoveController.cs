@@ -15,7 +15,7 @@ public class GridMoveController : MonoBehaviour
     [SerializeField] private AnimationCurve bounceCurve;
     [SerializeField] private float maxJumpHeight = 3f;
     
-    private PegionActions inputActions;
+    private PigeonInput inputActions;
     private Collider characterCollider;
     private Queue<Vector3> moveInputQueue = new();
     private bool isMoving;
@@ -28,9 +28,9 @@ public class GridMoveController : MonoBehaviour
 
     private void Awake()
     {
-        inputActions = new PegionActions();
+        inputActions = new PigeonInput();
         inputActions.Enable();
-        inputActions.Gameplay.Movement.performed += HandleMovementInput;
+        inputActions.Gameplay.Move.performed += HandleMovementInput;
         TryGetComponent(out characterCollider);
     }
 
@@ -42,12 +42,12 @@ public class GridMoveController : MonoBehaviour
     private void OnDestroy()
     {
         inputActions.Disable();
-        inputActions.Gameplay.Movement.performed -= HandleMovementInput;
+        inputActions.Gameplay.Move.performed -= HandleMovementInput;
     }
 
     private void HandleMovementInput(InputAction.CallbackContext context)
     {
-        Vector2 input = inputActions.Gameplay.Movement.ReadValue<Vector2>();
+        Vector2 input = inputActions.Gameplay.Move.ReadValue<Vector2>();
         if (input.magnitude < 0.5f) return;
         
         moveInputQueue.Enqueue(new Vector3(input.x, 0, input.y));
