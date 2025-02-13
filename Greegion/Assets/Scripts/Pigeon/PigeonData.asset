@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b27cb6ba5c4aac64487e7aa86dfcfa2f, type: 3}
   m_Name: PigeonData
   m_EditorClassIdentifier: 
-  speed: 5
+  speed: 1255
   smoothTime: 0.1
   jumpHeight: 1

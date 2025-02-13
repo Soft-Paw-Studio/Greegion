@@ -4,7 +4,7 @@ namespace Pigeon.States
     {
         public override void Update()
         {
-            if (Controller.MoveDirection.magnitude > 0)
+            if (Controller.targetMovement.magnitude > 0)
             {
                 Controller.StateManager.ChangeState<MoveState>();
             }

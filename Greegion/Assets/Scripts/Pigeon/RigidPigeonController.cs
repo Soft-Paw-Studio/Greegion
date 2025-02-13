@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Pigeon
 {
-    public class PigeonController : MonoBehaviour,IEffectReceiver
+    public class RigidPigeonController : MonoBehaviour,IEffectReceiver
     {
         [ShowInInspector][ReadOnly]
         public string CurrentState;
@@ -30,7 +30,7 @@ namespace Pigeon
             Controller = GetComponent<CharacterController>();
             Rigid = GetComponent<Rigidbody>();
             
-            StateManager = new StateManager(this);
+            //StateManager = new StateManager(this);
             StateManager.ChangeState<IdleState>();
             
             inputHandler.EnableInput();
