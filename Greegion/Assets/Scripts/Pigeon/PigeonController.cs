@@ -15,7 +15,6 @@ namespace Pigeon
         private Camera MainCam { get; set; }
         public StateManager StateManager { get; private set; }
         public CharacterController Controller { get; private set; }
-        public Rigidbody Rigid { get; private set; }
 
         public Vector3 targetMovement { get; private set; }
         private Vector3 currentVelocity;
@@ -28,7 +27,6 @@ namespace Pigeon
         {
             MainCam = Camera.main;
             Controller = GetComponent<CharacterController>();
-            Rigid = GetComponent<Rigidbody>();
             
             StateManager = new StateManager(this);
             StateManager.ChangeState<IdleState>();
@@ -68,17 +66,13 @@ namespace Pigeon
         
         private void MoveCharacter()
         {
-
             currentMovement = Vector3.SmoothDamp(currentMovement, targetMovement, ref currentVelocity, data.smoothTime);
-            var finalMove = currentMovement * data.speed;
-            
-            //Controller.Move(finalMove * Time.deltaTime);
-            Rigid.linearVelocity = finalMove * Time.deltaTime;
-            Rigid.MoveRotation(Quaternion.LookRotation(currentMovement));
-            
+            var finalMove = currentMovement * data.speed + Vector3.up * verticalVelocity;
+            Controller.Move(finalMove * Time.deltaTime);
+
             if (currentMovement.sqrMagnitude > 0.01f)
             {
-                //transform.rotation = Quaternion.LookRotation(currentMovement);
+                transform.rotation = Quaternion.LookRotation(currentMovement);
             }
         }
         //verticalVelocity = GravityManager.Instance.GetGravityEffect(this,verticalVelocity, Controller.isGrounded);
