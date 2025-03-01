@@ -21,49 +21,42 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
     [SerializeField] private float wallSlideSpeed = 2f;
     [SerializeField] private float wallCheckDistance = 0.3f;
 
-    private Rigidbody rb;
-    private Vector2 moveInput;
-    private bool isGrounded;
-    private bool isAgainstWall;
-    private Vector3 wallNormal;
-    private float jumpBufferCounter;
-    private bool canJump = true;
-    private float coyoteTimeCounter = 0f;
+    public Rigidbody rb;
+    public Vector2 moveInput;
+    public bool isGrounded;
+    public bool isAgainstWall;
+    public Vector3 wallNormal;
+    public float jumpBufferCounter;
+    public bool canJump = true;
+    public float coyoteTimeCounter = 0f;
     public InputHandler inputHandler;
-    private Collider collider;
+    public Collider collider;
 
-    // 存储上一帧的物理状态
-    private Vector3 previousVelocity;
-    private Vector3 previousPosition;
-    private bool wasGrounded;
+    public bool jumped;
     
+    //Initial on gamestart
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         collider = GetComponent<Collider>();
-        
-        // 设置Rigidbody属性
-        SetupRigidbody();
-        
         // 绑定输入事件
         inputHandler.Move += OnMove;
         inputHandler.Jump += OnJump;
     }
-
-    private void SetupRigidbody()
+    
+    public void OnMove(Vector2 direction)
     {
-        rb.freezeRotation = true;
-        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
-        rb.linearDamping = 0f;
-        rb.angularDamping = 0f;
+        moveInput = direction;
     }
-
+    
+    public void OnJump()
+    { 
+        jumpBufferCounter = jumpBufferTime;
+        jumped = true;
+    }
+    
     private void FixedUpdate()
     {
-        // 在每帧开始时保存上一帧的状态
-        StoreCurrentPhysicsState();
-        
         // 更新状态检查
         UpdateStateChecks();
         
@@ -76,33 +69,36 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
         UpdateTimers();
     }
 
-    private void StoreCurrentPhysicsState()
-    {
-        previousVelocity = rb.linearVelocity;
-        previousPosition = rb.position;
-    }
-
     private void UpdateStateChecks()
     {
-        wasGrounded = isGrounded;
         isGrounded = Physics.CheckSphere(transform.position, groundCheckDistance, groundLayer);
         
-        // if (isGrounded && !wasGrounded && rb.linearVelocity.y < 0)
-        // {
-        //     rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
-        // }
+        isAgainstWall = false;
+        RaycastHit hit;
         
-        CheckWall();
+        // 在8个方向上检查墙壁
+        for (float angle = 0; angle < 360; angle += 45)
+        {
+            Vector3 direction = Quaternion.Euler(0, angle, 0) * Vector3.forward;
+            if (Physics.Raycast(collider.bounds.center, direction, out hit, wallCheckDistance, groundLayer))
+            {
+                isAgainstWall = true;
+                wallNormal = hit.normal;
+                break;
+            }
+        }
         
         // 更新接地状态相关逻辑
         if (isGrounded)
         {
             coyoteTimeCounter = coyoteTimeDuration;
             canJump = true;
+
         }
-        else if (wasGrounded)
+
+        if (rb.linearVelocity.y <= 0.1f)
         {
-            coyoteTimeCounter = coyoteTimeDuration;
+            jumped = false;
         }
     }
 
@@ -119,24 +115,6 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
             }
         }
     }
-
-    private void CheckWall()
-    {
-        isAgainstWall = false;
-        RaycastHit hit;
-        
-        // 在8个方向上检查墙壁
-        for (float angle = 0; angle < 360; angle += 45)
-        {
-            Vector3 direction = Quaternion.Euler(0, angle, 0) * Vector3.forward;
-            if (Physics.Raycast(collider.bounds.center, direction, out hit, wallCheckDistance, groundLayer))
-            {
-                isAgainstWall = true;
-                wallNormal = hit.normal;
-                break;
-            }
-        }
-    }
     
     private void HandleMovementPhysics()
     {
@@ -146,7 +124,7 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
         if (moveDirection.magnitude > 0.1f)
         {
             // 使用上一帧的速度计算新的移动
-            Vector3 currentHorizontalVelocity = new Vector3(previousVelocity.x, 0f, previousVelocity.z);
+            Vector3 currentHorizontalVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             Vector3 targetVelocity = moveDirection * moveSpeed;
             Vector3 velocityChange = targetVelocity - currentHorizontalVelocity;
 
@@ -158,9 +136,9 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
 
             // 应用速度变化
             Vector3 newVelocity = new Vector3(
-                previousVelocity.x + velocityChange.x,
+                rb.linearVelocity.x + velocityChange.x,
                 rb.linearVelocity.y,
-                previousVelocity.z + velocityChange.z
+                rb.linearVelocity.z + velocityChange.z
             );
 
             // 应用最大速度限制
@@ -188,12 +166,12 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
 
     private void HandleJumpPhysics()
     {
-        if (jumpBufferCounter > 0 && canJump)
+        if (jumpBufferCounter > 0 && canJump && !jumped)
         {
             float jumpVelocity = Mathf.Sqrt(2f * Mathf.Abs(Physics.gravity.y) * jumpHeight);
             
             // 保持水平速度，只修改垂直速度
-            rb.linearVelocity = new Vector3(previousVelocity.x, jumpVelocity, previousVelocity.z);
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpVelocity, rb.linearVelocity.z);
             
             // 重置状态
             jumpBufferCounter = 0f;
@@ -204,24 +182,14 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
     
     private void HandleWallSlidePhysics()
     {
-        if (isAgainstWall && !isGrounded && previousVelocity.y < 0)
+        if (isAgainstWall && !isGrounded && rb.linearVelocity.y < 0)
         {
             rb.linearVelocity = new Vector3(
-                previousVelocity.x, 
-                Mathf.Max(previousVelocity.y, -wallSlideSpeed), 
-                previousVelocity.z
+                rb.linearVelocity.x, 
+                Mathf.Max(rb.linearVelocity.y, -wallSlideSpeed), 
+                rb.linearVelocity.z
             );
         }
-    }
-    
-    public void OnMove(Vector2 direction)
-    {
-        moveInput = direction;
-    }
-    
-    public void OnJump()
-    {
-        jumpBufferCounter = jumpBufferTime;
     }
     
     private void OnDrawGizmos()

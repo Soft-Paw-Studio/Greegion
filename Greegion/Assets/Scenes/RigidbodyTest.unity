@@ -1133,9 +1133,9 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 0
+  m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 1
+  m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!4 &1756045171
@@ -1163,21 +1163,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 1756045167}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3fef54fef7cec9c48b5b64b6c5955fc7, type: 3}
+  m_Script: {fileID: 11500000, guid: e292d41a50b31a24f85529fa97db435c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MainCam: {fileID: 961739752}
   input: {fileID: 11400000, guid: c07101ce77b2b664092eae9caa1f9921, type: 2}
-  rigid: {fileID: 1756045170}
-  targetMovement: {x: 0, y: 0, z: 0}
-  inputDirection: {x: 0, y: 0, z: 0}
-  speed: 5
-  currentVerticalSpeed: 0
-  jumpSpeed: 10
-  isGrounded: 0
-  gravity: 9.81
-  saveLastVelo: 0
-  airControlRate: 0
+  groundedRadius: 0.1
+  moveSpeed: 1
+  airControlMultiplier: 1
+  jumpCooldown: 1
+  jumpHeight: 1
+  lowJumpMultiplier: 1
+  fallMultiplier: 1
+  rotationSpeed: 25
+  moveInput: {x: 0, y: 0}
 --- !u!1 &1899857313
 GameObject:
   m_ObjectHideFlags: 0
