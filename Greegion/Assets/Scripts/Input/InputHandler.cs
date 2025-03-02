@@ -6,7 +6,6 @@ using UnityEngine.InputSystem;
 public class InputHandler : ScriptableObject,PigeonInput.IGameplayActions
 {
     private PigeonInput controls;
-
     public event Action<Vector2> Move;
     public event Action Jump;
 

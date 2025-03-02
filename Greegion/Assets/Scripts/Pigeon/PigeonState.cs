@@ -1,26 +1,34 @@
+using UnityEngine;
+
 namespace Pigeon
 {
     public abstract class PigeonState
     {
         protected StateManager StateManager;
-        protected PigeonController Controller;
-
-        // 进入状态时调用
-        public virtual void Enter(PigeonController pigeon)
+        protected PigeonCharacterController Controller;
+        protected Rigidbody rb;
+        
+        public virtual void Enter(PigeonCharacterController pigeon)
         {
             Controller = pigeon;
+            rb = pigeon.rigidbody;
         }
-
-        // 每帧调用
         public virtual void Update()
         {
             
         }
-
-        // 退出状态时调用
         public virtual void Exit()
         {
             
+        }
+
+        public virtual void HandleInput()
+        {
+            
+        }
+
+        public virtual void FixedUpdate()
+        {
         }
     }
 }

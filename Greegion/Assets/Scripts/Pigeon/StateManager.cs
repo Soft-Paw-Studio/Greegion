@@ -6,10 +6,10 @@ namespace Pigeon
     public class StateManager
     {
         public PigeonState CurrentState { get; private set; }
-        private PigeonController controller;
+        private PigeonCharacterController controller;
         private Dictionary<Type, PigeonState> stateDictionary = new();
         
-        public StateManager(PigeonController controller)
+        public StateManager(PigeonCharacterController controller)
         {
             this.controller = controller;
         }
@@ -35,6 +35,11 @@ namespace Pigeon
         public void Update()
         {
             CurrentState?.Update();
+        }
+
+        public void FixedUpdate()
+        {
+            CurrentState?.FixedUpdate();
         }
     }
 }
