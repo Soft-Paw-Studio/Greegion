@@ -1,10 +1,19 @@
+using System;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 [RequireComponent(typeof(Rigidbody))]
 public class RigidbodyCharacterControllerV4 : MonoBehaviour
 {
+    [BoxGroup("DEBUG")] 
+    
+    [ReadOnly]public Vector3 moveDirection;
+    [ReadOnly]public Vector3 debugRigidVelocity;
+    
     [Header("Movement Parameters")]
+    [SerializeField] private float rotationSpeed = 5f;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float maxVelocity = 8f;
     [SerializeField] private float groundDrag = 6f;
@@ -31,7 +40,9 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
     public float coyoteTimeCounter = 0f;
     public InputHandler inputHandler;
     public Collider collider;
-
+    public float bounceForce;
+    
+    public bool hitByWall;
     public bool jumped;
     
     //Initial on gamestart
@@ -43,7 +54,16 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
         inputHandler.Move += OnMove;
         inputHandler.Jump += OnJump;
     }
-    
+
+    private void Start()
+    {
+        for (float angle = 0; angle < 360; angle += 22.5f)
+        {
+            Vector3 direction = Quaternion.Euler(0, angle, 0) * Vector3.forward;
+            rays[Mathf.FloorToInt(angle / 22.5f)] = new Ray(collider.bounds.center, direction);
+        }
+    }
+
     public void OnMove(Vector2 direction)
     {
         moveInput = direction;
@@ -52,9 +72,35 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
     public void OnJump()
     { 
         jumpBufferCounter = jumpBufferTime;
-        jumped = true;
     }
-    
+
+    private void Update()
+    {
+        for (float angle = 0; angle < 360; angle += 22.5f)
+        {
+            Vector3 direction = Quaternion.Euler(0, angle, 0) * Vector3.forward;
+
+            int index = Mathf.FloorToInt(angle / 22.5f);
+            rays[index].origin = collider.bounds.center;
+            rays[index].direction = direction;
+        }
+        
+        if (moveDirection.magnitude != 0f)
+        {
+            float angleLimit = rotationSpeed;
+
+            if (!isGrounded)
+            {
+                angleLimit = rotationSpeed * airControl * 10;
+            }
+            rb.rotation = Quaternion.RotateTowards(rb.rotation,Quaternion.LookRotation(moveDirection),angleLimit);
+        }
+
+        debugRigidVelocity = rb.linearVelocity;
+
+        rb.useGravity = !isGrounded || hitByWall;
+    }
+
     private void FixedUpdate()
     {
         // 更新状态检查
@@ -63,11 +109,16 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
         // 处理移动和跳跃
         HandleMovementPhysics();
         HandleJumpPhysics();
-        HandleWallSlidePhysics();
+        //HandleWallSlidePhysics();
         
         // 更新计时器
         UpdateTimers();
     }
+
+    private Ray[] rays = new Ray[16];
+    [SerializeField] private float currentHeight;
+    [SerializeField] private double threshold;
+    [SerializeField] private float dot;
 
     private void UpdateStateChecks()
     {
@@ -77,13 +128,12 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
         RaycastHit hit;
         
         // 在8个方向上检查墙壁
-        for (float angle = 0; angle < 360; angle += 45)
+        for (float angle = 0; angle < 360; angle += 22.5f)
         {
-            Vector3 direction = Quaternion.Euler(0, angle, 0) * Vector3.forward;
-            if (Physics.Raycast(collider.bounds.center, direction, out hit, wallCheckDistance, groundLayer))
+            if (Physics.Raycast(rays[Mathf.FloorToInt(angle / 22.5f)],out RaycastHit h,wallCheckDistance,groundLayer))
             {
                 isAgainstWall = true;
-                wallNormal = hit.normal;
+                wallNormal = h.normal;
                 break;
             }
         }
@@ -93,12 +143,15 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
         {
             coyoteTimeCounter = coyoteTimeDuration;
             canJump = true;
-
+            hitByWall = false;
         }
 
         if (rb.linearVelocity.y <= 0.1f)
         {
             jumped = false;
+                    
+            // 根据接地状态应用阻力
+            rb.linearDamping = isGrounded ? groundDrag : 0f;
         }
     }
 
@@ -115,32 +168,36 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
             }
         }
     }
-    
-    private void HandleMovementPhysics()
-    {
-        // 获取摄像机相对的移动方向
-        Vector3 moveDirection = GetCameraRelativeMoveDirection();
 
-        if (moveDirection.magnitude > 0.1f)
+    private Vector3 refVelo;
+    [SerializeField] private float smoothTime;
+
+    private void HandleMovementPhysics()
+    { 
+        moveDirection = GetCameraRelativeMoveDirection();
+        
+        dot = Vector3.Dot(transform.forward, wallNormal);
+        if (moveDirection.magnitude > 0.1f && !hitByWall)
         {
+        
             // 使用上一帧的速度计算新的移动
             Vector3 currentHorizontalVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             Vector3 targetVelocity = moveDirection * moveSpeed;
             Vector3 velocityChange = targetVelocity - currentHorizontalVelocity;
-
+        
             // 在空中减少控制
             if (!isGrounded)
             {
                 velocityChange *= airControl;
             }
-
+        
             // 应用速度变化
             Vector3 newVelocity = new Vector3(
                 rb.linearVelocity.x + velocityChange.x,
                 rb.linearVelocity.y,
                 rb.linearVelocity.z + velocityChange.z
             );
-
+        
             // 应用最大速度限制
             Vector3 horizontalVelocity = new Vector3(newVelocity.x, 0f, newVelocity.z);
             if (horizontalVelocity.magnitude > maxVelocity)
@@ -148,12 +205,9 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
                 horizontalVelocity = horizontalVelocity.normalized * maxVelocity;
                 newVelocity = new Vector3(horizontalVelocity.x, newVelocity.y, horizontalVelocity.z);
             }
-
+        
             rb.linearVelocity = newVelocity;
         }
-
-        // 根据接地状态应用阻力
-        rb.linearDamping = isGrounded ? groundDrag : 0f;
     }
     
     private Vector3 GetCameraRelativeMoveDirection()
@@ -168,8 +222,15 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
     {
         if (jumpBufferCounter > 0 && canJump && !jumped)
         {
+            jumped = true;
+            rb.linearDamping = 0;
+            currentHeight = transform.position.y;
             float jumpVelocity = Mathf.Sqrt(2f * Mathf.Abs(Physics.gravity.y) * jumpHeight);
-            
+
+            if (isAgainstWall)
+            {
+                rb.linearVelocity = new Vector3(0, jumpVelocity, 0);
+            }
             // 保持水平速度，只修改垂直速度
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpVelocity, rb.linearVelocity.z);
             
@@ -182,30 +243,43 @@ public class RigidbodyCharacterControllerV4 : MonoBehaviour
     
     private void HandleWallSlidePhysics()
     {
-        if (isAgainstWall && !isGrounded && rb.linearVelocity.y < 0)
+        if (rb.linearVelocity.y <= 0.1f)
         {
-            rb.linearVelocity = new Vector3(
-                rb.linearVelocity.x, 
-                Mathf.Max(rb.linearVelocity.y, -wallSlideSpeed), 
-                rb.linearVelocity.z
-            );
+            if (isAgainstWall && !isGrounded && !hitByWall)
+            {
+                if (Vector3.Dot(transform.forward,wallNormal) < threshold && moveDirection.magnitude > 0)
+                {
+                    Vector3 forceDirection = wallNormal + Vector3.up;
+                    rb.linearVelocity = Vector3.zero;
+                    rb.AddForce(forceDirection * bounceForce,ForceMode.VelocityChange);
+                    rb.rotation = Quaternion.RotateTowards(rb.rotation, Quaternion.LookRotation(wallNormal), rotationSpeed);
+                }
+                hitByWall = true;
+            }
         }
     }
     
     private void OnDrawGizmos()
     {
-        if (!Application.isPlaying) return;
-        
         // 绘制地面检测范围
         Gizmos.color = isGrounded ? Color.green : Color.red;
         Gizmos.DrawWireSphere(transform.position, groundCheckDistance);
         
         // 绘制墙壁检测射线
-        Gizmos.color = isAgainstWall ? Color.yellow : Color.blue;
-        for (float angle = 0; angle < 360; angle += 45)
+        for (float angle = 0; angle < 360; angle += 22.5f)
         {
-            Vector3 direction = Quaternion.Euler(0, angle, 0) * Vector3.forward;
-            Gizmos.DrawRay(collider.bounds.center, direction * wallCheckDistance);
+            Ray gizmoRay = rays[Mathf.FloorToInt(angle / 22.5f)];
+            
+            if (Physics.Raycast(gizmoRay,wallCheckDistance,groundLayer))
+            {
+                Gizmos.color = Color.red;
+            }
+            else
+            {
+                Gizmos.color = Color.green;
+            }
+            
+            Gizmos.DrawRay(gizmoRay.origin,gizmoRay.direction * wallCheckDistance);
         }
     }
 }

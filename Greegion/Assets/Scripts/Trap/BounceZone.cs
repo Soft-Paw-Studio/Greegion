@@ -11,6 +11,7 @@ public class BounceZone : MonoBehaviour
         {
             Debug.Log("BOUNCE");
             Vector3 bounceDirection = Vector3.up;
+            rigid.linearVelocity = Vector3.zero;
             rigid.AddForce(bounceDirection * bounceForce, ForceMode.Impulse);
         }
 
